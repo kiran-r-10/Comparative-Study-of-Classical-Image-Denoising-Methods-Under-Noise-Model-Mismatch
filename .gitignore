@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Datasets are large and public: never commit them (see data/README.md)
+data/*
+!data/README.md
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

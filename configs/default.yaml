@@ -1,0 +1,24 @@
+# Global experiment configuration (Part A owns this file).
+# Phase 1 only uses `seed`, `data_root` and `datasets`.
+# The noise grids are a DRAFT for Phase 2 and can change.
+
+seed: 2026
+
+# Relative to the repo root. Images are expected in data_root/<dataset name>/
+data_root: data
+datasets: [set12, kodak24, bsd68]
+
+noise:
+  # AWGN standard deviations in 8-bit units. Divide by 255 in code
+  # to get the sigma used on images in [0, 1].
+  awgn:
+    sigmas_255: [15, 25, 50]
+
+  # Poisson-Gaussian: z = alpha * Poisson(x / alpha) + N(0, sigma^2)
+  # peak = 1 / alpha, so a low peak means a high amount of Poisson noise.
+  poisson_gaussian:
+    peaks: [1, 2, 5, 10, 30]
+    sigmas_255: [0, 5, 10]
+
+# Clipping policy (see README). false = noise is NOT clipped to [0, 1].
+clip_noisy: false

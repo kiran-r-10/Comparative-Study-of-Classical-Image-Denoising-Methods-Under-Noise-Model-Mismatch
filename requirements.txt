@@ -1,0 +1,11 @@
+numpy>=1.24
+scipy>=1.10
+scikit-image>=0.21
+Pillow>=10.0
+PyYAML>=6.0
+pandas>=2.0
+matplotlib>=3.7
+pytest>=7.0
+jupyter>=1.0
+# Part B (Roshan) needs this for BM3D:
+bm3d>=4.0
