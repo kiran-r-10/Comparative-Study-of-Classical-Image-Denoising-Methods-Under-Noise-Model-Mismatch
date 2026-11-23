@@ -27,6 +27,31 @@ jupyter notebook notebooks/02_phase1_denoisers_and_metrics.ipynb  # Part B: deno
 
 The sanity script writes `results/phase1_sanity_per_image.csv`, `results/phase1_sanity_summary.csv` and `results/phase1_sanity_table.md`. The integration test (`tests/test_integration.py`) is skipped automatically if Set12 is not in `data/`.
 
+## Running experiments
+
+The harness (`run_experiments.py`, package `experiments/`) implements the arms of `report/mismatch_protocol.md`: `M0`, `X0`, `MM-A`, `MM-B`, `MM-C`, `VST`. Noise is drawn once per (image, noise setting, repeat) and shared by all methods and by MM-A/B/C/VST, so comparisons are paired. Methods that are not implemented yet (`wavelet`, `nlm`, `bm3d`) are skipped with a one-line warning and picked up automatically once Part B lands them.
+
+Quick check (Set12, first 3 images, the four implemented methods, default noise grid):
+
+```bash
+python run_experiments.py --datasets set12 --methods mean gaussian median wiener \
+    --arms M0 X0 MM-A MM-B MM-C VST --max-images 3 --repeats 1 --out results/phase2_quick.csv
+python run_experiments.py --preset quick --out results/phase2_quick.csv --overwrite   # smaller grid, same idea
+python run_experiments.py --preset quick --dry-run                                     # only count the runs
+```
+
+Full benchmark (all datasets, all methods, all arms; resumable):
+
+```bash
+python run_experiments.py --datasets set12 kodak24 bsd68 \
+    --methods mean gaussian median wiener wavelet nlm bm3d \
+    --arms M0 X0 MM-A MM-B MM-C VST --repeats 1 --out results/phase2_results.csv --resume
+```
+
+Options: `--vst-inverse {closed_form,algebraic,exact}` (anything but `closed_form` renames the arm `VST-<inverse>`), `--seed`, `--config`, `--overwrite`. An existing output CSV is never replaced silently: pass `--resume` (skip rows already there) or `--overwrite`. The CSV is appended and flushed after every noise setting, so a crash loses at most one setting.
+
+Outputs: `<out>` has one row per (dataset, image, method, arm, noise setting, repeat) with columns `dataset, image, method, arm, noise_type, sigma_true, peak, sigma_read, sigma_assumed, repeat, seed, psnr, ssim, time_s, noisy_psnr` (`NaN` where a field does not apply); `<out>_estimates.csv` has the per-image sigma estimates (`sigma_eq`, `sigma_blind`, `sigma_read_only`) of each PG setting. How `sigma_assumed` becomes denoiser parameters lives in one function, `experiments/params.py::params_for`, whose rules are **temporary** until Part B's parameter policy is final.
+
 ## Repo layout
 
 | Folder / file | Owner | Content |
@@ -42,7 +67,8 @@ The sanity script writes `results/phase1_sanity_per_image.csv`, `results/phase1_
 | `notebooks/` | both | notebooks that call the modules and show results |
 | `results/` | both | generated CSVs and figures |
 | `report/` | both | final report |
-| `run_experiments.py` | A | experiment harness (Phase 2) |
+| `experiments/` | A | arms, `sigma_assumed` -> parameters adapter (`params.py`), runner (Phase 2) |
+| `run_experiments.py` | A | experiment harness CLI (Phase 2) |
 
 ## Conventions (the shared interface contract)
 
@@ -60,7 +86,10 @@ add_poisson_gaussian(x, alpha, sigma, rng, clip=False) -> z
 gat_forward(z, alpha, sigma, g=0.0) -> f
 gat_inverse_algebraic(f, alpha, sigma, g=0.0) -> x_hat
 gat_inverse_closed_form(f, alpha, sigma, g=0.0) -> x_hat
-gat_inverse_exact_unbiased(f, alpha, sigma, g=0.0) -> x_hat   # Phase 2 stretch (stub)
+gat_inverse_exact_unbiased(f, alpha, sigma, g=0.0) -> x_hat   # numerical exact unbiased inverse
+sigma_equal_variance(x, alpha, sigma_read) -> float            # protocol rule A (uses clean x)
+sigma_blind(z) -> float                                        # rule B (estimate_sigma)
+sigma_read_only(sigma_read, floor=1/255) -> float              # rule C
 
 # Part B provides (import from denoisers / metrics)
 denoise(method, z, params=None) -> x_hat   # method in {"mean","gaussian","median","wiener"} now;
@@ -114,5 +143,6 @@ PSNR in dB. The noisy-input PSNR matches the theoretical $-20\log_{10}(\sigma/25
 
 * Phase 1, Part A (noise module, GAT, statistical tests): done, see `notebooks/01_phase1_noise_and_gat.ipynb`.
 * Phase 1, Part B (mean, Gaussian, median and Wiener filters, PSNR/SSIM/method-noise/timing, Set12 sanity run, integration test): done, see `notebooks/02_phase1_denoisers_and_metrics.ipynb`.
-* Phase 2 (not started): wavelet, NLM and BM3D; direct and VST-mediated pipelines; experiment harness, noise grid and mismatch protocol; full benchmark on Set12, Kodak24 and BSD68; method-noise statistics, tables, plots, robustness ranking and decision guide.
+* Phase 2, Part A: sigma rules A/B/C, exact unbiased inverse GAT and the experiment harness are implemented and tested (see "Running experiments"); the full benchmark has not been run yet.
+* Phase 2, Part B (not started): wavelet, NLM and BM3D; parameter policy; method-noise statistics, tables, plots, robustness ranking and decision guide.
 * Details and open items: `PROGRESS.md` and `WORK_SPLIT.md`.

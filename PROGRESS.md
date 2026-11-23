@@ -3,13 +3,13 @@
 Checklist mirrors `WORK_SPLIT.md`. Update the status and the "Last updated" line whenever something changes.
 Legend: `[x]` done and verified, `[~]` partial / needs follow-up, `[ ]` not started.
 
-**Last updated:** 2026-11-23 · **Tests:** 119 passed (`python3 -m pytest -q`)
+**Last updated:** 2026-11-23 · **Tests:** 183 passed (`python3 -m pytest -q`; 179 passed + 4 skipped when `data/set12` is absent)
 
 ## Summary
 
 | Area | Phase 1 | Phase 2 |
 |---|---|---|
-| Part A (Kiran): data, noise, GAT, harness | Done | Not started |
+| Part A (Kiran): data, noise, GAT, harness | Done | Done for the 4 current methods; rerun with `--resume` when wavelet/NLM/BM3D land |
 | Part B (Roshan): denoisers, metrics, analysis | Done | Not started |
 | Shared: integration test, report, README | Integration test done | Not started |
 
@@ -30,13 +30,15 @@ Legend: `[x]` done and verified, `[~]` partial / needs follow-up, `[ ]` not star
 
 ### Phase 2
 
-- [ ] Exact unbiased inverse GAT: `gat_inverse_exact_unbiased` is a stub that raises `NotImplementedError` (stretch goal; otherwise the report says closed-form is used)
-- [ ] Experiment harness `run_experiments.py` (grid, matched and mismatched sweeps, multiple seeds, config-driven, CSV output)
+- [x] Exact unbiased inverse GAT: `noise/gat.py::gat_inverse_exact_unbiased` (table of E[f|lambda] + interpolation, cached). Tests in `tests/test_gat.py`. `inverse_bias_curve` in `noise/diagnostics.py` now also returns the `exact` key
+- [x] Experiment harness `run_experiments.py` + `experiments/` (arms M0/X0/MM-A/B/C/VST, paired noise, config-driven, resumable CSV). Tests in `tests/test_experiments.py`. `experiments/params.py` uses TEMPORARY parameter rules until Part B's policy is final
+- [x] Sigma rules A/B/C: `noise/sigma.py`, tests in `tests/test_sigma.py` (needs `PyWavelets` for `estimate_sigma`, `tqdm` for the progress bar: added to `requirements.txt`)
 - [~] Noise grid: draft exists in `configs/default.yaml` (AWGN σ ∈ {15,25,50}/255; PG peak ∈ {1,2,5,10,30}, σ ∈ {0,5,10}/255). Needs final confirmation
 - [~] Mismatch protocol: `report/mismatch_protocol.md`. Decided: A headline + B practical view, sigma-dependent mean/gaussian/median, 1 repeat, VST-on-AWGN is future work. Waiting on Roshan to confirm the filter-size rule
 - [~] Extra repeats (WHEN TIME PERMITS, do not forget): 3 repeats on Set12 only to show variance is small. First time one BM3D and one NLM call on a Kodak image to check the budget
-- [ ] Noise-level estimation runs (`skimage.restoration.estimate_sigma`)
-- [ ] Full benchmark on Set12, Kodak24, BSD68
+- [x] Noise-level estimation runs: `results/phase2_results_estimates.csv` (1,560 rows)
+- [x] Full benchmark on Set12, Kodak24, BSD68 with the 4 implemented methods: `results/phase2_results.csv` (32,448 rows, 104 images, all 6 arms, no duplicates or NaNs) and `results/phase2_results_estimates.csv`. Wavelet, NLM, BM3D still to be added with `--resume` once Part B lands them
+- [x] Presentation notebook with saved outputs: `notebooks/03_phase2_experiments.ipynb`
 
 ## Part B: Denoisers, Evaluation & Analysis
 

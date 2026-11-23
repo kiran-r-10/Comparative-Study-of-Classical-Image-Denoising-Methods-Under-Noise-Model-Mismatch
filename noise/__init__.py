@@ -8,6 +8,7 @@ from .gat import (
     gat_inverse_closed_form,
     gat_inverse_exact_unbiased,
 )
+from .sigma import sigma_blind, sigma_equal_variance, sigma_read_only
 
 __all__ = [
     "add_awgn",
@@ -17,4 +18,7 @@ __all__ = [
     "gat_inverse_algebraic",
     "gat_inverse_closed_form",
     "gat_inverse_exact_unbiased",
+    "sigma_blind",
+    "sigma_equal_variance",
+    "sigma_read_only",
 ]

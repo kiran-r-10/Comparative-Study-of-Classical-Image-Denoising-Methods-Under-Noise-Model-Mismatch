@@ -12,7 +12,12 @@ import numpy as np
 
 from .awgn import add_awgn
 from .poisson_gaussian import add_poisson_gaussian
-from .gat import gat_forward, gat_inverse_algebraic, gat_inverse_closed_form
+from .gat import (
+    gat_forward,
+    gat_inverse_algebraic,
+    gat_inverse_closed_form,
+    gat_inverse_exact_unbiased,
+)
 
 
 def flat_patch(value, shape=(512, 512)):
@@ -55,13 +60,15 @@ def inverse_bias_curve(x_values, alpha, sigma, rng, n_samples=400_000):
     (this is what an ideal denoiser would output), and apply each inverse to
     that mean. An ideal inverse returns x.
 
-    Returns a dict with arrays 'x', 'algebraic', 'closed_form'.
+    Returns a dict with arrays 'x', 'algebraic', 'closed_form', 'exact'.
     """
     x_values = np.asarray(x_values, dtype=np.float64)
-    alg, cf = [], []
+    alg, cf, ex = [], [], []
     for xv in x_values:
         z = add_poisson_gaussian(np.full(n_samples, xv), alpha, sigma, rng)
         f_mean = gat_forward(z, alpha, sigma).mean()
         alg.append(float(gat_inverse_algebraic(f_mean, alpha, sigma)))
         cf.append(float(gat_inverse_closed_form(f_mean, alpha, sigma)))
-    return {"x": x_values, "algebraic": np.array(alg), "closed_form": np.array(cf)}
+        ex.append(float(gat_inverse_exact_unbiased(f_mean, alpha, sigma)))
+    return {"x": x_values, "algebraic": np.array(alg), "closed_form": np.array(cf),
+            "exact": np.array(ex)}

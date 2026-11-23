@@ -1,24 +1,62 @@
 # Global experiment configuration (Part A owns this file).
-# Phase 1 only uses `seed`, `data_root` and `datasets`.
-# The noise grids are a DRAFT for Phase 2 and can change.
+# Every key is documented below. The harness is run_experiments.py.
 
+# Base seed. Noise for (image, setting, repeat) comes from
+# make_rng(seed, image_name, setting_id, repeat), so runs are reproducible.
 seed: 2026
 
 # Relative to the repo root. Images are expected in data_root/<dataset name>/
 data_root: data
+# Datasets used when --datasets is not given.
 datasets: [set12, kodak24, bsd68]
+# Only use the first N images of each dataset (null = all). --max-images overrides.
+max_images: null
 
 noise:
   # AWGN standard deviations in 8-bit units. Divide by 255 in code
-  # to get the sigma used on images in [0, 1].
+  # to get the sigma used on images in [0, 1]. (Arm M0.)
   awgn:
     sigmas_255: [15, 25, 50]
 
   # Poisson-Gaussian: z = alpha * Poisson(x / alpha) + N(0, sigma^2)
   # peak = 1 / alpha, so a low peak means a high amount of Poisson noise.
+  # The grid is peaks x sigmas_255. (Arms X0, MM-A, MM-B, MM-C, VST.)
   poisson_gaussian:
     peaks: [1, 2, 5, 10, 30]
     sigmas_255: [0, 5, 10]
 
 # Clipping policy (see README). false = noise is NOT clipped to [0, 1].
 clip_noisy: false
+
+# ---- Phase 2 experiment settings ------------------------------------------
+# Arms evaluated by default (report/mismatch_protocol.md, section 3):
+#   M0    matched: AWGN(s), method told s
+#   X0    equal-variance control: AWGN(sigma_eq), method told sigma_eq
+#   MM-A  PG data, method told sigma_eq (oracle equal variance, headline)
+#   MM-B  PG data, method told a blind estimate (estimate_sigma)
+#   MM-C  PG data, method told the read noise only (1/255 if it is 0)
+#   VST   PG data, GAT -> denoise(sigma = 1) -> inverse GAT
+arms: [M0, X0, MM-A, MM-B, MM-C, VST]
+
+# Independent noise draws per (image, setting). 1 everywhere by default;
+# use --repeats 3 on Set12 only for the optional variance check.
+repeats: 1
+
+# Inverse GAT of the VST arm: closed_form (default) | algebraic | exact.
+# Anything other than closed_form names the arm VST-<inverse> (ablation).
+vst_inverse: closed_form
+
+# Folder of the default output CSV (results_dir/phase2_results.csv).
+results_dir: results
+
+# Development preset, used with `--preset quick`. Every key here replaces
+# the top-level key of the same name: Set12, 3 images, small grid.
+quick:
+  datasets: [set12]
+  max_images: 3
+  noise:
+    awgn:
+      sigmas_255: [25]
+    poisson_gaussian:
+      peaks: [2, 10]
+      sigmas_255: [0, 10]
