@@ -50,6 +50,8 @@ python run_experiments.py --datasets set12 kodak24 bsd68 \
 
 Options: `--vst-inverse {closed_form,algebraic,exact}` (anything but `closed_form` renames the arm `VST-<inverse>`), `--seed`, `--config`, `--overwrite`. An existing output CSV is never replaced silently: pass `--resume` (skip rows already there) or `--overwrite`. The CSV is appended and flushed after every noise setting, so a crash loses at most one setting.
 
+The benchmark CSVs (`results/phase2_*.csv`) are git-ignored: regenerate them with the full command above (about 20 minutes for the four current methods on all three datasets), then explore them with `jupyter notebook notebooks/03_phase2_experiments.ipynb`.
+
 Outputs: `<out>` has one row per (dataset, image, method, arm, noise setting, repeat) with columns `dataset, image, method, arm, noise_type, sigma_true, peak, sigma_read, sigma_assumed, repeat, seed, psnr, ssim, time_s, noisy_psnr` (`NaN` where a field does not apply); `<out>_estimates.csv` has the per-image sigma estimates (`sigma_eq`, `sigma_blind`, `sigma_read_only`) of each PG setting. How `sigma_assumed` becomes denoiser parameters lives in one function, `experiments/params.py::params_for`, whose rules are **temporary** until Part B's parameter policy is final.
 
 ## Repo layout
@@ -143,6 +145,6 @@ PSNR in dB. The noisy-input PSNR matches the theoretical $-20\log_{10}(\sigma/25
 
 * Phase 1, Part A (noise module, GAT, statistical tests): done, see `notebooks/01_phase1_noise_and_gat.ipynb`.
 * Phase 1, Part B (mean, Gaussian, median and Wiener filters, PSNR/SSIM/method-noise/timing, Set12 sanity run, integration test): done, see `notebooks/02_phase1_denoisers_and_metrics.ipynb`.
-* Phase 2, Part A: sigma rules A/B/C, exact unbiased inverse GAT and the experiment harness are implemented and tested (see "Running experiments"); the full benchmark has not been run yet.
-* Phase 2, Part B (not started): wavelet, NLM and BM3D; parameter policy; method-noise statistics, tables, plots, robustness ranking and decision guide.
+* Phase 2, Part A: sigma rules A/B/C, exact unbiased inverse GAT and the experiment harness are implemented and tested (see "Running experiments"); the full benchmark has been run for the four implemented methods (mean, Gaussian, median, Wiener): 32,448 rows over Set12, Kodak24 and BSD68, all six arms. Results and a presentation notebook: `notebooks/03_phase2_experiments.ipynb`. Wavelet, NLM and BM3D will be added with `--resume` once Part B implements them.
+* Phase 2, Part B (not started; Phase 2 parameter policy pending): wavelet, NLM and BM3D; parameter policy; method-noise statistics, tables, plots, robustness ranking and decision guide.
 * Details and open items: `PROGRESS.md` and `WORK_SPLIT.md`.

@@ -1,4 +1,4 @@
-# Mismatch protocol (DRAFT)
+# Mismatch protocol
 
 Goal: define exactly what "a method tuned for AWGN, tested on Poisson-Gaussian" means, in terms of the noise level each denoiser is given. Everything below is fixed by this document, so that the harness (`run_experiments.py`) and the denoiser parameter policy (`denoisers/`) cannot drift apart.
 
@@ -75,7 +75,7 @@ The same policy function must be used in all arms. No arm may tune parameters on
 * One row per (dataset, image, method, arm, noise setting, repeat) in `results/*.csv` with columns: `dataset, image, method, arm, noise_type, sigma_true or (peak, s_r), sigma_assumed, repeat, psnr, ssim, time_s`.
 * Aggregation (Part B `analysis/`): mean and std over images and repeats; ranking by mismatch penalty.
 
-## 7. Decisions and open items
+## 7. Decisions
 
 1. **Headline arm: decided.** A is the headline, B is run and reported as the practical view.
 2. **Mean / Gaussian / median: decided, sigma-dependent.** Their window or kernel size is a function of `sigma_assumed` (for example Gaussian `filter_sigma` growing with sigma, median window of 3, 5 or 7 chosen by sigma), so they can react to a wrong sigma like every other method. It is set once on the matched AWGN case (M0) and then frozen for all arms. 

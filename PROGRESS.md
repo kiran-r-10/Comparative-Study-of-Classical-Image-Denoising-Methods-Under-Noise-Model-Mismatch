@@ -11,7 +11,7 @@ Legend: `[x]` done and verified, `[~]` partial / needs follow-up, `[ ]` not star
 |---|---|---|
 | Part A (Kiran): data, noise, GAT, harness | Done | Done for the 4 current methods; rerun with `--resume` when wavelet/NLM/BM3D land |
 | Part B (Roshan): denoisers, metrics, analysis | Done | Not started |
-| Shared: integration test, report, README | Integration test done | Not started |
+| Shared: integration test, report, README | Integration test done, mismatch protocol written | Report not started |
 
 ## Part A: Data, Noise & Experiment Engine
 
@@ -34,7 +34,8 @@ Legend: `[x]` done and verified, `[~]` partial / needs follow-up, `[ ]` not star
 - [x] Experiment harness `run_experiments.py` + `experiments/` (arms M0/X0/MM-A/B/C/VST, paired noise, config-driven, resumable CSV). Tests in `tests/test_experiments.py`. `experiments/params.py` uses TEMPORARY parameter rules until Part B's policy is final
 - [x] Sigma rules A/B/C: `noise/sigma.py`, tests in `tests/test_sigma.py` (needs `PyWavelets` for `estimate_sigma`, `tqdm` for the progress bar: added to `requirements.txt`)
 - [~] Noise grid: draft exists in `configs/default.yaml` (AWGN σ ∈ {15,25,50}/255; PG peak ∈ {1,2,5,10,30}, σ ∈ {0,5,10}/255). Needs final confirmation
-- [~] Mismatch protocol: `report/mismatch_protocol.md`. Decided: A headline + B practical view, sigma-dependent mean/gaussian/median, 1 repeat, VST-on-AWGN is future work. Waiting on Roshan to confirm the filter-size rule
+- [x] Mismatch protocol: `report/mismatch_protocol.md`, agreed by both. A headline + B practical view, sigma-dependent mean/gaussian/median (Roshan owns the exact rule and agreed), 1 repeat, VST-on-AWGN is future work
+- [ ] Parameter names for wavelet / NLM / BM3D (BLOCKER for adding them): `experiments/params.py` uses placeholder names (`sigma`, `h`, `sigma_psd`) and Roshan's `denoise` rejects unknown parameter names with `ValueError`, which the runner does not catch. Agree the exact names with Roshan, or make `params_for` call Part B's policy function. Also confirm that the final mean/median window rule covers the high sigma range (sigma_eq reaches about 170/255 at peak 1). Then run `--resume` to add the three methods
 - [~] Extra repeats (WHEN TIME PERMITS, do not forget): 3 repeats on Set12 only to show variance is small. First time one BM3D and one NLM call on a Kodak image to check the budget
 - [x] Noise-level estimation runs: `results/phase2_results_estimates.csv` (1,560 rows)
 - [x] Full benchmark on Set12, Kodak24, BSD68 with the 4 implemented methods: `results/phase2_results.csv` (32,448 rows, 104 images, all 6 arms, no duplicates or NaNs) and `results/phase2_results_estimates.csv`. Wavelet, NLM, BM3D still to be added with `--resume` once Part B lands them
@@ -64,7 +65,7 @@ Implemented by Roshan (commits of 2026-11-23). Contract: `denoise(method, z, par
 ## Shared
 
 - [x] Integration test (Phase 1 scope): `tests/test_integration.py`, one Set12 image, four filters, sigma=25. Extend to all 7 methods + VST in Phase 2
-- [ ] Report: Intro, Methodology, Noise models, GAT (A); Denoisers, Metrics, Results, Decision guide (B); Conclusion and cross-review (both). `report/` is empty
+- [ ] Report: Intro, Methodology, Noise models, GAT (A); Denoisers, Metrics, Results, Decision guide (B); Conclusion and cross-review (both). `report/` has only `mismatch_protocol.md` so far
 - [x] README updated by Roshan for Part B; `WORK_SPLIT.md` is now in the repo root
 - [ ] Reproducibility check (fresh clone runs end to end)
 
@@ -74,3 +75,4 @@ Implemented by Roshan (commits of 2026-11-23). Contract: `denoise(method, z, par
 - Contract and README say `load_dataset(name)`. The actual signature is `load_dataset(name, data_root=None, max_images=None)`, which is compatible.
 - Roshan's Phase 1 Wiener rows in `results/phase1_sanity_table.md` use the true sigma, i.e. the matched case. Mismatch results come only from the Phase 2 harness.
 - Next blocker for Part B Phase 2 is the mismatch protocol (which sigma each denoiser receives).
+- Benchmark CSVs (`results/phase2_*.csv`) are git-ignored; regenerate with the full command in the README. The 4-method results exist locally; add wavelet/NLM/BM3D with `--resume` once Part B lands them.
