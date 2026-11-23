@@ -43,11 +43,11 @@ All of `denoisers/`, `metrics/`, `analysis/` currently contain only `.gitkeep`.
 
 ### Phase 1
 
-- [ ] Mean and Gaussian filters
-- [ ] Median filter
-- [ ] Wiener filter
-- [ ] Metrics: PSNR, SSIM, runtime
-- [ ] End-to-end run on sample Set12 images with sanity-check table
+- [x] Mean and Gaussian filters
+- [x] Median filter
+- [x] Wiener filter
+- [x] Metrics: PSNR, SSIM, runtime
+- [x] End-to-end run on sample Set12 images with sanity-check table
 
 ### Phase 2
 
@@ -72,3 +72,13 @@ All of `denoisers/`, `metrics/`, `analysis/` currently contain only `.gitkeep`.
 - Interface contract is implemented for everything Part A promised, so Part B is unblocked and can import `noise` and `utils` today.
 - Contract and README say `load_dataset(name)`. The actual signature is `load_dataset(name, data_root=None, max_images=None)`, which is compatible.
 - The folder is currently a zip-export copy (`denoising-mismatch-phase1/`). Decide which location is the real repo before Part B starts adding code.
+
+**Last updated:** 2026-11-23 · **Tests:** 54 passed (`python3 -m pytest -q`)
+
+| Part B (Roshan): denoisers, metrics, analysis | Phase 1 done | Not started |
+
+### Phase 1 (Part B)
+- [x] Mean and Gaussian filters, median filter, Wiener filter: `denoisers/spatial.py`, entry point `denoisers/api.py::denoise`
+- [x] Metrics: PSNR, SSIM, runtime, method noise (residual only): `metrics/`
+- [x] End-to-end run on Set12 with sanity-check table: `python -m analysis.sanity_check`, `notebooks/02_phase1_denoisers_and_metrics.ipynb`
+- [x] Integration test: `tests/test_integration.py` (one Set12 image, four filters, σ=25)
